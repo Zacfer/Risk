@@ -1,0 +1,19 @@
+application: globalkonquest
+version: 3
+runtime: python27
+api_version: 1
+threadsafe: false
+  
+inbound_services:
+- channel_presence
+  
+handlers:
+- url: /static
+  static_dir: static
+
+- url: /favicon\.ico
+  static_files: static/favicon.ico
+  upload: favicon\.ico
+  
+- url: /.*
+  script: game.py

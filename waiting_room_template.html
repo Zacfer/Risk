@@ -1,0 +1,199 @@
+<html>
+	<head>
+		<title>Waiting Room</title>
+		<script src='/_ah/channel/jsapi'></script>
+		<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/mootools/1.4.1/mootools-yui-compressed.js'></script>
+		<script type="text/javascript" src="http://sisomall.com/shaneG/js/mootools/more.js"></script>
+		<link href='http://fonts.googleapis.com/css?family=Ruda' rel='stylesheet' type='text/css'>
+	</head>
+	<body>
+		<script>
+			var screen = '{{ screen }}';
+			var clientID = '{{ clientID }}';
+			function Receiver() {
+				// This constructor is only used ONCE
+				
+				this.channel = new goog.appengine.Channel('{{ token }}');
+	
+				// call back functions for socket
+				this.onOpened = function() {/*blank*/
+				};
+				this.onError = function(error) {
+					console.log(error);
+					if(error.code == 0 || error.code == 1) {
+						
+					} else {
+						this.channel = new goog.appengine.Channel(contactServer('/renewToken?clientID=' + clientID));
+					}					
+					this.getSocket();
+				};
+				this.onClose = function() {
+					console.log("closing socket")
+				};
+				this.onMessage = function(message) {
+					process(message);
+				};
+				// get socket from channel
+				this.getSocket = function() {
+					this.socket = this.channel.open();
+					this.socket.onopen = this.onOpened;
+					this.socket.onerror = this.onError;
+					this.socket.onclose = this.onClose;
+					this.socket.onmessage = this.onMessage;
+				};
+				this.getSocket();
+			}
+			
+			var receiver = new Receiver();
+			
+			function contactServer(link) {
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST', link, false);
+				xhr.send(null);
+				return xhr.responseText;
+			}
+			
+			var isCreator = {{ isCreator }};
+			var gameID = {{ gameID }};
+			
+			window.addEvent("domready", function() {
+				process({data:"refresh"});
+				if(!isCreator) {
+					$("button").setStyle("display", "none");
+				}
+				
+				$("button").onclick = function() {
+					if(contactServer('/startGame/' + gameID) != "OK") {
+						location.reload(true);
+					}
+				}
+			});			
+			
+			function listPlayers(players) {
+				$("players").empty();
+				if(players.length > 1 && isCreator) {
+					$("button").removeProperty("disabled");
+				}
+				for(var i = 0 ; i < players.length ; i++) {
+					var player = players[i];
+					var color = new Element("div#color");
+					color.setStyle("background-color", player.color);
+					var name = new Element("div#name");
+					name.setProperty("text", player.player);
+					var listItem = new Element("li#player");
+					listItem.grab(color);
+					listItem.grab(name);
+					$("players").grab(listItem);
+				}
+			}
+			
+			function process(message) {
+				if(message.data == "refresh") {
+					var players = JSON.parse(contactServer('/getPlayers/' + gameID));
+					console.log(players);
+					listPlayers(players);
+				} else if(message.data == "start") {
+					location.reload(true);
+				}
+			}
+		</script>
+		<style type="text/css" media="screen">
+			#button {
+				background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,.25)), to(transparent));
+				background-image: -moz-linear-gradient(45deg, rgba(255,255,255,.25), rgba(255, 255, 255, 0) 95%);
+				display: block;
+				width: 220px;
+				height: 80px;
+				margin: 0 auto 36px;
+				padding: 0;
+				text-align: center;
+				font-family: 'Ruda', sans-serif;
+				font-size: 36px;
+				letter-spacing: -2px;
+				text-shadow: 0 -1px 5px rgba(0,0,0,.25);
+				-moz-border-radius: 10px;
+				-webkit-border-radius: 10px;
+				border: 0px solid rgba(0,0,0,.25);
+				-webkit-animation-name: greenPulse;
+				-webkit-animation-duration: 3s;
+				-webkit-animation-iteration-count: infinite;
+				-moz-animation-name: greenPulse;
+				-moz-animation-duration: 3s;
+				-moz-animation-iteration-count: infinite;
+			}
+			#button:hover{
+				 -webkit-animation-play-state:paused;
+				 -moz-animation-play-state:paused;
+			}
+			#button:enabled {
+				margin: 0 auto 36px;
+				-webkit-animation-play-state: running;
+				-moz-animation-play-state: running;
+			}
+			#button:disabled {
+				margin: 0 auto 36px;
+				-webkit-animation-play-state: paused;
+				-moz-animation-play-state: paused;
+			}
+			
+			@-webkit-keyframes greenPulse {
+				from {
+					background-color: #749a02;
+					-webkit-box-shadow: 0 0 12px #333;
+				}
+				50% { 
+					background-color: #91bd09; 
+					-webkit-box-shadow: 0 0 36px #91bd09;
+					}
+				to {
+					background-color: #749a02;
+					-webkit-box-shadow: 0 0 12px #333;
+				}
+			}
+			@-moz-keyframes greenPulse {
+				from {
+					background-color: #749a02;
+					-moz-box-shadow: 0 0 12px #333;
+					}
+				50% { 
+					background-color: #91bd09; 
+					-moz-box-shadow: 0 0 36px #91bd09;
+					}
+				to {
+					background-color: #749a02;
+					-moz-box-shadow: 0 0 12px #333;
+				}
+			}
+			#color {
+				width:25px;
+				height:36px;
+				margin:0px auto 2px;
+				text-align:left;
+			}
+			#name{
+				font-size: 24px;
+				font-family: 'Ruda', sans-serif;
+			}
+			#players {
+				width:300px;
+				display: block;
+				list-style-type:none;
+				text-align: center;
+				margin: 0 auto 36px;
+				padding: 10px 0px 0px 0px;
+				-moz-border-radius: 10px;
+				-webkit-border-radius: 10px;
+				font:24px Futura, ‘Century Gothic’, AppleGothic, sans-serif;
+				background:#AAA;
+			}
+			#player {
+				padding: 0px;
+			}
+			body{
+				background-color:#333
+			}
+		</style>
+        <ul id="players"></ul>
+		<button id="button" type="button" disabled="disabled">Start Game</button>
+	</body>
+</html>

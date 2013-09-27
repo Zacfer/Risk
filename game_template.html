@@ -1,0 +1,1073 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>GlobalKonquest : {{ gameID }}</title>
+		<script src='/_ah/channel/jsapi'></script>
+		<script src="/static/js/ExternalLibraries/Easel.js"></script>
+		<script src="/static/js/ExternalLibraries/MooTools.js"></script>
+		<script src="/static/js/View/Constants.js"></script>
+		<link href='http://fonts.googleapis.com/css?family=Terminal+Dosis:600,500' rel='stylesheet' type='text/css'>
+		<style type="text/css" media="screen">
+			html, head, body, div, canvas {
+				padding: 0px;
+				margin: 0px;
+			}
+			div#stateInformation {
+				text-align: center;
+				font-family: 'Terminal Dosis', sans-serif;
+				font-weight: 600;
+				font-size: 20px;
+				color: #FFFFFF;
+				background-color: #1A1A1A;
+				width: 100%;
+			}
+			div#stateDescription {
+				text-align: center;
+				font-family: 'Terminal Dosis', sans-serif;
+				font-weight: 500;
+				font-size: 14px;
+				color: #FFFFFF;
+				background-color: #000000;
+				width: 100%;
+				padding-bottom: 4px;
+			}
+			#state {
+				margin-top: -5px;
+			}
+			#float {
+				background-color: #FFFFFF;
+				position: absolute;
+			}
+			#cards {
+				display: none;
+				position: absolute;
+				background: #FFFFFF;
+				padding: 5px;
+				z-index: 5;
+			}
+			#greyLayer {
+				display: none;
+				position: absolute;
+				top: 0;
+				left: 0;
+				background: #000000;
+				z-index: 4;
+				opacity: 0.4;
+			}
+			#CONFIRM_TRADE {
+				position: absolute;
+				top: 280px;
+				width: 150px;
+				height: 24px;
+				z-index: 4;
+				background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,.25)), to(transparent));
+				background-image: -moz-linear-gradient(45deg, rgba(255,255,255,.25), rgba(255, 255, 255, 0) 95%);
+				text-align: center;
+				font-family: 'Terminal Dosis', sans-serif;
+				font-size: 18px;
+				letter-spacing: -1px;
+				text-shadow: 0 -1px 5px rgba(0,0,0,.25);
+				-moz-border-radius: 5px;
+				-webkit-border-radius: 5px;
+				border: 0px solid rgba(0,0,0,.25);
+				-webkit-animation-name: greenPulse;
+				-webkit-animation-duration: 3s;
+				-webkit-animation-iteration-count: infinite;
+				-moz-animation-name: greenPulse;
+				-moz-animation-duration: 3s;
+				-moz-animation-iteration-count: infinite;
+				-webkit-animation-play-state:paused;
+				-moz-animation-play-state:paused;
+			}
+			#cards div img {
+				border: 0px solid #ccc;
+			}
+			#cards div:hover img {
+				border: 3px solid #ccc;
+			}
+			#cards div {
+				display: none;
+				border: 0px solid navy;
+			}
+			#cards div.activated {
+				display: block;
+				border: 0px solid navy;
+			}
+			#cards div.selected img {
+				border: 3px solid navy;
+			}
+			#chatLog {
+				font-family: 'Terminal Dosis', sans-serif;
+				font-size: 14px;
+				width: 100%;
+			}
+			#messageInput {
+				resize: none;
+				font-family: 'Terminal Dosis', sans-serif;
+				font-size: 14px;
+			}
+			div#stateDescription button {
+				background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,.25)), to(transparent));   
+				background-image: -moz-linear-gradient(45deg, rgba(255,255,255,.25), rgba(255, 255, 255, 0) 95%);
+				display: inline-block;
+				width: 110px;
+				height: 24px;
+				margin: 4px auto 4px;
+				text-align: center;
+				font-family: 'Terminal Dosis', sans-serif;
+				font-size: 18px;
+				letter-spacing: -1px;
+				text-shadow: 0 -1px 5px rgba(0,0,0,.25);
+				-moz-border-radius: 4px;
+				-webkit-border-radius: 4px;
+				border: 0px solid rgba(0,0,0,.25);
+				-webkit-animation-name: greenPulse;
+				-webkit-animation-duration: 3s;
+				-webkit-animation-iteration-count: infinite;
+				-moz-animation-name: greenPulse;
+				-moz-animation-duration: 3s;
+				-moz-animation-iteration-count: infinite;
+			}
+			#button:enabled {
+				-webkit-animation-play-state: running;
+				-moz-animation-play-state: running;
+			}
+			#button:disabled {
+				-webkit-animation-play-state: paused;
+				-moz-animation-play-state: paused;
+			}
+			@-webkit-keyframes greenPulse {
+				from {
+					background-color: #749a02;
+					-webkit-box-shadow: 0 0 12px #333;
+				}
+				50% { 
+					background-color: #91bd09; 
+					-webkit-box-shadow: 0 0 36px #91bd09;
+					}
+				to {
+					background-color: #749a02;
+					-webkit-box-shadow: 0 0 12px #333;
+				}
+			}
+			@-moz-keyframes greenPulse {
+				from {
+					background-color: #749a02;
+					-moz-box-shadow: 0 0 12px #333;
+					}
+				50% { 
+					background-color: #91bd09; 
+					-moz-box-shadow: 0 0 36px #91bd09;
+					}
+				to {
+					background-color: #749a02;
+					-moz-box-shadow: 0 0 12px #333;
+				}
+			}
+			
+		</style>
+	</head>
+	<body>
+		<script src="/static/js/Model/Message.js"></script>
+		<script src="/static/js/Model/GameAction.js"></script>
+		<script src="/static/js/Model/GameEvent.js"></script>
+		<script src="/static/js/Model/model.js"></script>
+		<script src="/static/js/Model/GameFlowState.js"></script>
+		<script src="/GameClient/{{ gameID }}" type="text/javascript" charset="utf-8"></script>
+		<script>
+			var backgroundLayer = new Shape();
+			var connectionLayer = new Shape();
+			var continentBorderLayer = new Shape();
+			var staticLayerGroup1 = new Container();
+			var regionsLayer = new Container();
+			var regionBorderLayer = new Shape();
+			var regionTroopCircleLayer = new Shape();
+			var regionLabelLayer = new Container();
+			var staticLayerGroup2 = new Container();
+			var regionTroopsLayer = new Container();
+			var line = new Shape();
+
+			var stage = null;
+			var dragSource = null;
+			var dragDestination = null;
+			var lastFocusedRegion = null;
+			var resizeTimer;
+
+			var View = {
+				notify : function() {
+					console.info("Notified")
+					this.allowInput = client.player == game.currentPlayer && !(game.currentState instanceof GFS_End);
+					clearDragRoutine();
+					clearBorders();
+					regionsLayer.updateCache(null);
+					regionTroopsLayer.updateCache(null);
+					stage.update();
+					
+					$('CANCEL').setStyle("display", "none");
+					$('CONFIRM').setStyle("display", "none");
+					View.setStateDescription('');
+					
+					if(this.allowInput) {
+						if(game.currentState instanceof GFS_P_Reinforce) {
+							startTrade();
+							game.temps.availableReinforce = game.currentPlayer.numReinforcement;
+							View.setStateDescription('You have ' + game.temps.availableReinforce + ' troops left.');
+							$('CANCEL').setStyle("display", "inline-block");
+							$('CONFIRM').setStyle("display", "inline-block");
+						} else if(game.currentState instanceof GFS_P_Attack) {
+							$('CONFIRM').setStyle("display", "inline-block");
+						} else if(game.currentState instanceof GFS_P_Redeploy) {
+							$('CANCEL').setStyle("display", "inline-block");
+							$('CONFIRM').setStyle("display", "inline-block");
+						}
+					} else {
+						View.setStateDescription('Please wait your turn.');
+					}
+				},
+				setStateHeading : function(text) {
+					$("stateInformation").setProperty("text", text.toUpperCase());
+				},
+				setStateDescription : function(text) {
+					$("stateDescriptionText").setProperty("text", text.toUpperCase());
+				},
+				stopInput : function() {
+					this.allowInput = false;
+					clearDragRoutine();
+					clearBorders();
+					stage.update();
+				},
+				refresh : function() {
+					for(i in game.map.regions) {
+						region = game.map.regions[i];
+						if( region instanceof Region) {
+							region.view.repaint();
+						}
+					}
+					regionsLayer.updateCache(null);
+					regionTroopsLayer.updateCache(null);
+					stage.update();
+				},
+				updateTroopCache : function() {
+					regionTroopsLayer.updateCache(null);
+					stage.update();
+				},
+				allowInput : false,
+				updateChat : function(chat, userId){
+					var newChatLog = ( userId + ": " + chat + "\n" );
+					var chatMessage = new Element("dt.chatMessage");
+					chatMessage.addClass(userId);
+					var name = new Element("span.nick", {text:userId});
+					name.setStyles({
+						'color': game.playerListById[userId].color
+						//, 'font-weight': 600
+					});
+					chatMessage.grab(name);
+					chatMessage.grab(new Element("span.message", {text:": " + chat}));
+					$('chatLog').grab(chatMessage);
+				},
+				sendChatMessage: function(message) {
+					var xhr = new XMLHttpRequest();
+					xhr.open('POST', '/chat?message=' + JSON.encode({messageType:1,userId:client.user.name, chat:escape(message).replace("%0A", " ")}) + '&screen=' + screen);
+					xhr.send();
+				},
+				addChatListeners: function() {
+					var chat = $('messageInput');
+					chat.addEvent('keydown', function(event){
+						if (event.key == 'enter' & !(event.shift)) {
+							View.sendChatMessage(chat.value);
+						}
+					});
+					chat.addEvent('keyup', function(event){
+						if (event.key == 'enter' & !(event.shift)) {
+							chat.value = "";
+						}
+					});
+				},
+				addCardListeners: function() {
+					for(var i = 1; i <= 5; i++){
+						var card = $("" + i);
+						card.addEvent("click", function() {
+							var chosen = this.hasClass("selected");
+							if(chosen) {
+								this.removeClass("selected");
+								$("CONFIRM_TRADE").disabled = true;
+							}else if($$("#cards div.selected").length < 3) {
+								this.addClass("selected");
+								if(checkCardCombination() != 0)
+									$("CONFIRM_TRADE").disabled = false;
+							}
+						});
+					}
+				}
+			}
+
+			function getIntegerInput(message, defaultMessage, error, low, high) {
+				if(error == undefined) {
+					error = "";
+				}
+				if(low == undefined) {
+					low = Number.MIN_VALUE;
+				}
+				if(high == undefined) {
+					high = Number.MAX_VALUE;
+				}
+				if(defaultMessage == undefined) {
+					defaultMessage = 0;
+				}
+				
+				var input = prompt(message, defaultMessage);
+				if(!input) {
+					return defaultMessage
+				} else {
+					input = parseInt(input);
+					if(!isNaN(input) && input >= low && input <= high) {
+						return input;
+					} else {
+						return getIntegerInput(message + error, defaultMessage, "");
+					}
+				}
+			}
+
+			function startTrade() {
+				var numCards = client.bonusCards.length;
+				console.log(client.user.name + " NumCards:" + numCards);
+				
+				// clear selection
+				for(var i = 1; i <= numCards; i++) {
+					$("" + i).removeClass("selected");
+					$("" + i).addClass("activated");
+				}
+				
+				if(numCards < 3){
+					return false;
+				}
+
+				$("cards").setStyles({
+					'display' : 'none',
+					'height' : 300,
+					'width' : numCards * 175,
+					'min-width' : 525,
+					'max-width' : 875,
+					'top' : 150,
+					'left' : constants.map.width / 2 - numCards * 175 / 2
+				});
+
+				$("CONFIRM_TRADE").setStyles({
+					'left' : numCards * 175 / 2 - 150 / 2
+				});
+
+				$("cards").setStyle('display', "block");
+				$("greyLayer").setStyle('display', "block");
+
+				for(var i = 1; i <= numCards; i++) {
+					var card = $("" + i);
+					card.setStyles({
+						'position' : 'absolute',
+						'left' : 55 / 2 + 175 * (i - 1),
+						'top' : '80px'
+					});
+					var cardType = client.bonusCards[i - 1].type;
+					switch(cardType) {
+						case -1:
+						case 0:
+							//joker
+							card.innerHTML = '<img src="/static/img/joker.png">';
+							break;
+						case 1:
+							//triangle
+							card.innerHTML = '<img src="/static/img/triangle.jpg">';
+							break;
+						case 2:
+							//square
+							card.innerHTML = '<img src="/static/img/square.jpg">';
+							break;
+						case 3:
+							//circle
+							card.innerHTML = '<img src="/static/img/circle.jpg">';
+							break;
+						default:
+							break;
+					}
+				}
+
+				$("cards").fade("in");
+
+				$("greyLayer").fade("0.7");
+
+			}
+
+			function checkCardCombination() {
+				game.temps.trade = [];
+				var cardTypes = [];
+				var cards = $$("#cards div.selected");
+				if(cards.length != 3) {
+					game.temps.availableReinforce = game.currentPlayer.numReinforcement;
+					return 0;
+				}
+
+				cards.each(function(card) {
+					var index = card.getProperty("id") - 1;
+					game.temps.trade.push(client.bonusCards[index].id);
+					cardTypes.push(client.bonusCards[index].type);
+				});
+
+				cardTypes.sort();
+
+				var counts = {};
+				cardTypes.each(function(cardType) {
+					if(counts[cardType] == undefined) {
+						counts[cardType] = 1;
+					} else
+						counts[cardType]++;
+				});
+				
+				var countsKeys = Object.keys(counts);
+				
+				countsKeys.each(function(key) {
+					console.log('there are ' + counts[key] + ' of ' + key);
+				});
+				if(countsKeys.length == 3) {
+					game.temps.availableReinforce = game.currentPlayer.numReinforcement + 10;
+					View.setStateDescription('You have ' + game.temps.availableReinforce + ' troops left.');
+					return 1;
+				} else if(countsKeys.length == 1) {
+					game.temps.availableReinforce = game.currentPlayer.numReinforcement + 2 + 2 * cardTypes[0];
+					View.setStateDescription('You have ' + game.temps.availableReinforce + ' troops left.');
+					return 1;
+				} else if(countsKeys.length == 2 && cardTypes[0] < 1 && cardTypes[1] > 0) {
+					game.temps.availableReinforce = game.currentPlayer.numReinforcement + 2 + 2 * cardTypes[1];
+					View.setStateDescription('You have ' + game.temps.availableReinforce + ' troops left.');
+					return 1;
+				} else {
+					game.temps.availableReinforce = game.currentPlayer.numReinforcement;
+					game.temps.trade = [];
+					return 0;
+				}
+
+			}
+
+			function finishTrade() {
+			var numCards = client.bonusCards.length;
+				if(numCards < 5 || game.temps.trade.length != 0) {
+					$('cards').fade("out");
+					$('cards').setStyle('display', 'none');
+					$('greyLayer').fade("out");
+					$('greyLayer').setStyle('display', 'none');
+				} else {
+					alert("You have 5 cards, you must trade in order to continue");
+				}
+			}
+
+			function confirmChanges() {
+				if(game.currentState instanceof GFS_P_Redeploy) {
+					for(var i  = 0 ; i < game.temps.changes.length ; i++) {
+						var change = game.temps.changes[i];	
+						console.info(change);
+						var source = game.map.regions[change[0]].view;
+						var dest = game.map.regions[change[1]].view;
+						delete source.remainingTroopData;
+						delete source.tempTroopData;
+						delete dest.tempTroopData;
+					}
+
+					if((new GA_Redeployed(game.temps.changes)).send()) {
+						game.temps.changes = [];
+						console.info("GA_Redeployed success");
+					} else {
+						alert("Server denied your request");
+						console.info("GA_Redeployed fail");
+					}
+				} else if(game.currentState instanceof GFS_P_Reinforce) {
+					var keys = Object.keys(game.temps.reinforce);
+					var reinforce = [];
+					for(var i = 0; i < keys.length; i++) {
+						reinforce.push([keys[i], game.temps.reinforce[keys[i]]]);
+						delete game.map.regions[keys[i]].view.tempTroopData;
+					}
+					
+					if((new GA_Reinforce(game.temps.trade, reinforce)).send()) {
+						game.temps.trade = [];
+						game.temps.reinforce = {};
+						game.temps.availableReinforce = -1;
+						console.info("GA_Reinforce success");
+					} else {
+						alert("Server denied your request");
+						console.info("GA_Reinforce fail");
+					}
+				} else if(game.currentState instanceof GFS_P_Attack) {
+					if((new GA_Attacked()).send()) {
+						View.stopInput();
+					}
+				}
+			}
+
+			function cancelChanges() {
+				if(game.currentState instanceof GFS_P_Redeploy) {
+					for(var i  = 0 ; i < game.temps.changes.length ; i++) {
+						var change = game.temps.changes[i];
+						var source = game.map.regions[change[0]].view;
+						var dest = game.map.regions[change[1]].view;
+						delete source.remainingTroopData;
+						delete source.tempTroopData;
+						delete dest.tempTroopData;
+
+						source.drawTroopData();
+						dest.drawTroopData();
+					}
+
+					game.temps.changes = [];
+
+					regionTroopsLayer.updateCache(null);
+					stage.update();
+				} else if(game.currentState instanceof GFS_P_Reinforce) {
+					var keys = Object.keys(game.temps.reinforce);
+					for(var i = 0; i < keys.length; i++) {
+						var region = game.map.regions[keys[i]].view;
+						delete region.tempTroopData;
+						region.drawTroopData();
+					}
+
+					game.temps.trade = [];
+					game.temps.reinforce = {};
+					game.temps.availableReinforce == game.currentPlayer.numReinforcement;
+					
+					View.setStateDescription('');
+
+					regionTroopsLayer.updateCache(null);
+					stage.update();
+					
+					startTrade();
+				}
+			}
+
+			function resizeHandler() {
+				$clear(resizeTimer);
+				resizeTimer = (function() {
+					$("float").setStyles({
+						'max-height' : self.innerHeight,
+						'max-width' : Math.max(200, self.innerWidth - constants.map.width - 25),
+						'height' : self.innerHeight,
+						'width' : Math.max(200, self.innerWidth - constants.map.width - 25),
+						'left' : Math.max(600, constants.map.width),
+						'top' : 0,
+						'padding' : 0,
+						'margin' : 0
+					});
+					
+					$('stateDescription').setStyles({
+						'max-height' : Math.max(26, self.innerHeight - (constants.map.height + 26)),
+						'height' : Math.max(26, self.innerHeight - (constants.map.height + 26))
+					});
+					$('chatLog').setStyles({'height': $("Map").scrollHeight - $("statuses").scrollHeight - $("messageInput").scrollHeight - 36});
+					
+				}).delay(50);
+			}
+
+
+			window.addEvent('resize', resizeHandler);
+
+			window.addEvent('domready', function() {
+				View.allowInput = client.player == game.currentPlayer;
+				View.addChatListeners();
+
+				resizeHandler();
+
+				$("Map").setStyles({
+					'width' : constants.map.width,
+					'background-color' : constants.map.color
+				});
+
+				var canvas = $("mapCanvas");
+				canvas.width = constants.map.width;
+				canvas.height = constants.map.height;
+
+				var displayText = true;
+
+				document.onkeyup = function(e) {
+					var key;
+					if(window.event) {
+						key = window.event.keyCode;
+					} else {
+						key = e.keyCode;
+					}
+					if(key == 84) {
+						if(displayText) {
+							displayText = false;
+
+							staticLayerGroup2.removeChild(regionLabelLayer);
+						} else {
+							displayText = true;
+
+							staticLayerGroup2.addChild(regionLabelLayer);
+						}
+
+						staticLayerGroup2.updateCache();
+
+						stage.update();
+					} else if(key == 27) {
+						finishTrade();
+					}
+				};
+				stage = new Stage(canvas);
+				stage.enableMouseOver(50);
+				staticLayerGroup1.addChild(backgroundLayer);
+				staticLayerGroup1.addChild(connectionLayer);
+				staticLayerGroup1.addChild(continentBorderLayer);
+				stage.addChild(staticLayerGroup1);
+				stage.addChild(regionsLayer);
+				stage.addChild(regionBorderLayer);
+				staticLayerGroup2.addChild(regionTroopCircleLayer);
+				staticLayerGroup2.addChild(regionLabelLayer);
+				stage.addChild(staticLayerGroup2);
+				stage.addChild(regionTroopsLayer);
+				stage.addChild(line);
+
+				line.shadow = constants.map.dragLine.shadow;
+				continentBorderLayer.shadow = constants.map.continents.border.shadow;
+				regionTroopCircleLayer.shadow = constants.map.regions.troops.circle.shadow;
+				connectionLayer.shadow = constants.map.connections.shadow;
+
+				stage.onMouseUp = function(mouseEvent) {
+					if(dragSource != null && dragDestination != null && (dragDestination !== dragSource)) {
+						if(dragSource.region.connections.contains(dragDestination.region)) {
+							if(game.currentState instanceof GFS_P_Attack) {// Attack Phase
+								console.info("Sending GFS_P_Attack");
+								if(new GA_Attack(dragSource.region.id, dragDestination.region.id).send()) {
+									console.info("success");
+									View.stopInput();
+								} else {
+									console.info("error");
+								}
+							} else if(game.currentState instanceof GFS_P_Redeploy) {// Redeploy Phase
+								limit = (dragSource.remainingTroopData == undefined) ? dragSource.region.troops - 1 : dragSource.remainingTroopData - 1;
+								
+								if(limit > 0) {
+									var numTroops = getIntegerInput("Please input the number of troops to move. (" + String(limit) + " troop" + ((limit > 1) ? "s" : "") + " available)", 0, "\nNot a valid input.", 0, limit);
+									if(numTroops > 0) {
+										dragSource.remainingTroopData = (dragSource.remainingTroopData == undefined) ? dragSource.region.troops - numTroops : dragSource.remainingTroopData - numTroops;
+										dragSource.tempTroopData = (dragSource.tempTroopData == undefined) ? dragSource.region.troops - numTroops : dragSource.tempTroopData - numTroops;
+										dragDestination.tempTroopData = (dragDestination.tempTroopData == undefined) ? dragDestination.region.troops + numTroops : dragDestination.tempTroopData + numTroops;
+
+										game.temps.changes.push([dragSource.region.id, dragDestination.region.id, numTroops]);
+										dragSource.drawTroopData(dragSource.tempTroopData);
+										dragDestination.drawTroopData(dragDestination.tempTroopData);
+										regionTroopsLayer.updateCache(null);
+										stage.update();
+									}
+								}
+							}
+						} else {
+							console.error("Not a valid drag.");
+						}
+					}
+
+					if(dragDestination) {
+						dragDestination.paintRegionBorder(true);
+					} else {
+						clearBorders();
+					}
+
+					clearDragRoutine();
+					stage.update();
+
+					game.constructStatusPanel();
+				}
+				setupCache();
+
+				setupBackgroundLayer();
+
+				drawConnections();
+
+				handleContinents();
+
+				handleRegions();
+				
+				game.updateStateHeading();
+				
+				game.constructStatusPanel();
+
+				setupCache();
+
+				stage.update();
+				
+				View.addCardListeners();
+
+				$("greyLayer").setStyles({
+					'display' : 'none',
+					'max-height' : self.innerHeight,
+					'max-width' : constants.map.width,
+					'height' : self.innerHeight,
+					'width' : constants.map.width,
+					'left' : 0,
+					'top' : 0
+				});
+
+				$("greyLayer").addEvent('click', function(event) {
+					finishTrade();
+				});
+				$("CONFIRM_TRADE").onclick = function(e) {
+					$("CONFIRM_TRADE").disabled = true;
+					finishTrade();
+				}
+
+				$("CONFIRM").onclick = function(e) {
+					confirmChanges();
+				}
+
+				$("CANCEL").onclick = function(e) {
+					cancelChanges();
+				}
+				
+				View.notify();
+			});
+			function drawConnections() {
+				connectionLayer.graphics.clear().setStrokeStyle(constants.map.connections.stroke.size, "round").beginStroke(constants.map.connections.stroke.color);
+				var i = 0, j, l1 = game.map.lines.length, l2, points;
+				for(; i < l1; i++) {
+					points = game.map.lines[i].vertices;
+					l2 = points.length;
+					connectionLayer.graphics.moveTo(correctX(points[0].x), correctY(points[0].y));
+					for( j = 1; j < l2; j++) {
+						connectionLayer.graphics.lineTo(correctX(points[j].x), correctY(points[j].y));
+					}
+				}
+			}
+
+			function clearBorders() {
+				regionBorderLayer.graphics.clear();
+				regionBorderLayer.updateCache(null);
+			}
+
+			function setupCache() {
+				var w = constants.map.width;
+				var h = constants.map.height;
+				staticLayerGroup1.cache(0, 0, w, h);
+				regionsLayer.cache(0, 0, w, h);
+				regionBorderLayer.cache(0, 0, w, h);
+				staticLayerGroup2.cache(0, 0, w, h);
+				regionTroopsLayer.cache(0, 0, w, h);
+			}
+
+			function setupBackgroundLayer() {
+				var w = constants.map.width;
+				var h = constants.map.height;
+				backgroundLayer.graphics.beginFill(constants.map.background).rect(0, 0, w, h).endFill();
+				backgroundLayer.onMouseOver = function(mouseEvent) {
+					if(lastFocusedRegion && !dragSource) {
+						clearBorders();
+						stage.update();
+					}
+				}
+			}
+
+			function clearDragRoutine() {
+				line.graphics.clear();
+				dragSource = null;
+				dragDestination = null;
+			}
+
+			function handleContinents() {
+				for(i in game.map.continents) {
+					continent = game.map.continents[i];
+					if( continent instanceof Continent)
+						drawContinentLabel(continent);
+				}
+			}
+
+			function handleRegions() {
+				for(i in game.map.regions) {
+					region = game.map.regions[i];
+					if( region instanceof Region)
+						regionsLayer.addChild(new RegionView(region))
+				}
+			}
+
+			function correctX(x) {
+				return x * game.map.multiplier + game.map.offsetX;
+			}
+
+			function correctY(y) {
+				return y * game.map.multiplier + game.map.offsetY;
+			}
+
+			function drawContinentLabel(continent) {
+				var label = new Text(continent.name.toUpperCase() + " +" + continent.bonus, constants.map.continents.label.font, continent.color);
+				label.x = correctX(continent.textPos.x);
+				label.y = correctY(continent.textPos.y);
+				label.shadow = constants.map.continents.label.shadow;
+				regionLabelLayer.addChild(label);
+			}
+
+			function RegionView(region) {
+				Shape.call(this);
+				region.view = this;
+				this.region = region;
+				
+				this.troopData = new Text("0", constants.map.regions.troops.font, constants.map.regions.troops.color);
+				this.troopData.textBaseline = "middle";
+				regionTroopsLayer.addChild(this.troopData);
+
+				this.paint = function(props) {
+					if(props.clear) {
+						props.graphics.clear();
+					}
+					props.graphics.beginFill(props.color).moveTo(correctX(region.vertices.vertices[0].x), correctY(region.vertices.vertices[0].y));
+					var i = 1, l = region.vertices.vertices.length;
+					for(; i < l; i++) {
+						props.graphics.lineTo(correctX(region.vertices.vertices[i].x), correctY(region.vertices.vertices[i].y));
+					}
+					props.graphics.closePath().endFill();
+
+					if(props.troopData) {
+						this.drawTroopData(props.troopData);
+					}
+				}
+
+				this.drawPath = function(props) {
+					if(props.clear) {
+						props.graphics.clear();
+					}
+					props.graphics.setStrokeStyle(props.thickness, "round").beginStroke(props.color).moveTo(correctX(region.vertices.vertices[0].x), correctY(region.vertices.vertices[0].y));
+					var i = 1, l = region.vertices.vertices.length;
+					for(; i < l; i++) {
+						props.graphics.lineTo(correctX(region.vertices.vertices[i].x), correctY(region.vertices.vertices[i].y));
+					}
+					props.graphics.lineTo(correctX(region.vertices.vertices[0].x), correctY(region.vertices.vertices[0].y)).endStroke();
+				}
+
+				this.drawTroopCircle = function() {
+					regionTroopCircleLayer.graphics.setStrokeStyle(constants.map.regions.troops.circle.stroke.size, "round").beginStroke(constants.map.regions.troops.circle.stroke.color).beginFill(constants.map.regions.troops.circle.fill).drawCircle(correctX(this.region.centerPos.x), correctY(this.region.centerPos.y), constants.map.regions.troops.circle.radius);
+				}
+
+				this.drawTroopData = function(troops) {
+					if(!troops) {
+						troops = this.region.troops + "";
+					} else {
+						troops = "" + troops;
+					}
+					this.troopData.text = troops;
+					this.troopData.x = correctX(this.region.centerPos.x) - troops.length * 3;
+					this.troopData.y = correctY(this.region.centerPos.y);
+				}
+
+				this.drawLabel = function() {
+					var label = new Text(this.region.name.toUpperCase(), constants.map.regions.label.font, constants.map.regions.label.color);
+					label.x = correctX(this.region.textPos.x);
+					label.y = correctY(this.region.textPos.y);
+					label.shadow = constants.map.regions.label.shadow;
+					regionLabelLayer.addChild(label);
+				}
+
+				this.onPress = function(mouseEvent) {
+					if(View.allowInput && (game.currentState instanceof GFS_P_Attack || game.currentState instanceof GFS_P_Redeploy)) {
+						dragSource = this;
+						mouseEvent.onMouseMove = function(mE) {
+							line.graphics.clear().setStrokeStyle(constants.map.dragLine.stroke.size, "round").beginStroke(constants.map.dragLine.stroke.color).moveTo(mouseEvent.stageX, mouseEvent.stageY).lineTo(mE.stageX, mE.stageY).endStroke();
+							stage.update();
+						}
+					}
+				}
+
+				this.onMouseOut = function(mouseEvent) {
+					//if(View.allowInput) {
+					dragDestination = null;
+
+					if(dragSource) {
+						dragSource.paintRegionBorder(true);
+					}
+
+					stage.update();
+					//}
+				}
+
+				this.onMouseOver = function(mouseEvent) {
+					if(View.allowInput && (game.currentState instanceof GFS_Playing || game.currentState instanceof GFS_SU_DistributingInitialForces)) {
+						if(dragSource) {
+							if(game.currentState instanceof GFS_P_Attack) {
+								if(this.region.owner === game.currentPlayer) {
+									return;
+								}
+							} else if(game.currentState instanceof GFS_P_Redeploy) {
+								if(this.region.owner !== game.currentPlayer) {
+									return;
+								}
+							}
+						} else if(this.region.owner !== game.currentPlayer) {
+							return;
+						}
+						
+						dragDestination = this;
+
+						this.paintRegionBorder(true);
+						if(dragSource) {
+							dragSource.paintRegionBorder(false);
+						}
+
+						stage.update();
+					}
+				}
+
+				this.onClick = function(mouseEvent) {
+					if(View.allowInput) {
+						if(game.currentState instanceof GFS_SU_DistributingInitialForces) {
+							console.info("Sending GA_Distributed")
+							if(new GA_Distributed(this.region.id).send()) {
+								View.stopInput();
+								this.drawTroopData(this.region.troops + 1);
+								regionTroopsLayer.updateCache(null);
+								stage.update();
+								console.info("success")
+							} else {
+								console.info("fail")
+							}
+						} else if(game.currentState instanceof GFS_P_Reinforce) {
+							
+							if(game.temps.availableReinforce > 0) {
+								var id = this.region.id;
+								var dict = game.temps.reinforce;
+								dict[id] = (dict[id] == undefined) ? 1 : dict[id] + 1;
+								game.temps.availableReinforce -= 1;
+
+								this.tempTroopData = (this.tempTroopData == undefined) ? this.region.troops + 1 : this.tempTroopData + 1;
+								this.drawTroopData(this.tempTroopData);
+								regionTroopsLayer.updateCache(null);
+								stage.update();
+							}
+							
+							if(game.temps.availableReinforce == -1) {
+								game.temps.availableReinforce = game.currentPlayer.numReinforcement;
+							}
+							
+							View.setStateDescription('You have ' + game.temps.availableReinforce + ' troops left.');
+						}
+					}
+				}
+
+				this.paintRegionBorder = function(clear) {
+					this.drawPath({
+						graphics : regionBorderLayer.graphics,
+						thickness : constants.map.regions.highlightBorder.size,
+						color : constants.map.regions.highlightBorder.color,
+						clear : clear
+					});
+					lastFocusedRegion = true;
+
+					regionBorderLayer.updateCache(null);
+				}
+
+				this.repaint = function() {
+					this.paint({
+						graphics : this.graphics,
+						color : this.region.owner.color,
+						troopData : this.region.troops + "",
+						clear : true
+					});
+
+					this.drawPath({
+						graphics : this.graphics,
+						thickness : constants.map.regions.border.size,
+						color : constants.map.regions.border.color
+					});
+				}
+
+				this.drawPath({
+					graphics : continentBorderLayer.graphics,
+					thickness : constants.map.continents.border.size,
+					color : this.region.continent.color
+				});
+
+				this.drawTroopCircle();
+				this.drawLabel();
+				this.repaint();
+			}
+
+
+			RegionView.prototype = new Shape();
+			RegionView.prototype.constructor = RegionView;
+
+		</script>
+		<style type="text/css" media="screen">
+		#buttons {
+			float: right;
+			padding-right: 10px;
+		}
+		
+		#float * {
+			margin : 0px;
+			padding : 0px;
+		}
+		
+		#stateDescription {
+			padding : 0px;
+		}
+		
+		#stateDescriptionText {
+			float: left;
+		}
+
+		#chatLog {
+			overflow-x:hidden;
+			overflow-y:scroll;
+			width: 100%;
+			height: 100%;
+			max-height: 600px;
+			resize: none;
+			font-family: 'Terminal Dosis', sans-serif;
+			font-size: 14px;
+		}
+		
+		#messageInput {
+			overflow:auto;
+			width:100%;
+			height:50px;
+			font-family: 'Terminal Dosis', sans-serif;
+			font-size: 14px;
+		}
+		</style>
+		<div id="Map">
+			<canvas id="mapCanvas"></canvas>
+			<div id="state">
+				<div id="stateInformation">
+					REDEPLOY
+				</div>
+				<div id="stateDescription">
+					<div id="stateDescriptionText">REDEPLOY TEXT</div>
+					<div id="buttons">
+						<button id="CONFIRM" type="button">
+							CONFIRM
+						</button>
+						<button id="CANCEL" type="button">
+							CANCEL
+						</button>
+					</div>					
+				</div>
+			</div>
+		</div>
+		<div id="float">
+			<dl id="statuses" style="background-color:#CCC; padding-buttom:5px;"></dl>
+			<dl id="chatLog" class="chatLog"></dl>
+			<textarea id="messageInput" class="messageInput" placeholder="Enter to Send"></textarea>
+		</div>
+		<div id="cards">
+			<div id="1" class="">
+				Card 1
+			</div>
+			<div id="2" class="">
+				Card 2
+			</div>
+			<div id="3" class="">
+				Card 3
+			</div>
+			<div id="4" class="">
+				Card 4
+			</div>
+			<div id="5" class="">
+				Card 5
+			</div>
+			<button id="CONFIRM_TRADE" type="button" disabled="true">
+				CONFIRM
+			</button>
+		</div>
+		<div id="greyLayer"></div>
+	</body>
+</html>
