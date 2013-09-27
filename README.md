@@ -1,2 +1,4 @@
 Risk
 ====
+
+globalkonquest.appspot.com
